@@ -25,7 +25,6 @@ package com.videojs{
         private var _masterVolume:SoundTransform;
         private var _currentPlaybackType:String;
         private var _videoReference:Video;
-        private var _lastSetVolume:Number = 1;
         private var _provider:IProvider;
 
         // accessible properties
@@ -36,6 +35,7 @@ package com.videojs{
         private var _backgroundColor:Number = 0;
         private var _backgroundAlpha:Number = 0;
         private var _volume:Number = 1;
+        private var _muted:Boolean = false;
         private var _autoplay:Boolean = false;
         private var _preload:String = "auto";
         private var _loop:Boolean = false;
@@ -160,16 +160,17 @@ package com.videojs{
         public function get volume():Number{
             return _volume;
         }
+
         public function set volume(pVolume:Number):void {
-            if(pVolume >= 0 && pVolume <= 1){
+            if (pVolume >= 0 && pVolume <= 1) {
                 _volume = pVolume;
             }
-            else{
+            else {
                 _volume = 1;
             }
+
             _masterVolume.volume = _volume;
             SoundMixer.soundTransform = _masterVolume;
-            _lastSetVolume = _volume;
             broadcastEventExternally(ExternalEventName.ON_VOLUME_CHANGE, _volume);
         }
 
@@ -284,18 +285,20 @@ package com.videojs{
             return 0;
         }
 
-        public function get muted():Boolean{
-            return (_volume == 0);
+        public function get muted():Boolean {
+            return _muted;
         }
+
         public function set muted(pValue:Boolean):void {
-            if(pValue){
-                var __lastSetVolume:Number = _lastSetVolume;
-                volume = 0;
-                _lastSetVolume = __lastSetVolume;
+            if (pValue) {
+                _masterVolume.volume = 0;
             }
-            else{
-                volume = _lastSetVolume;
+            else {
+                _masterVolume.volume = _volume;
             }
+
+            SoundMixer.soundTransform = _masterVolume;
+            _muted = pValue;
         }
 
         public function get seeking():Boolean{
